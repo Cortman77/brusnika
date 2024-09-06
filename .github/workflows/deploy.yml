@@ -1,0 +1,35 @@
+name: Deploy to Remote Host
+
+on:
+  push:
+    branches:
+      - main  # Пайплайн запускается при пуше в ветку main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to Remote Host
+        env:
+          HOST: ${{ secrets.REMOTE_HOST }}
+          USER: ${{ secrets.REMOTE_USER }}
+        run: |
+          ssh $USER@$HOST << 'EOF'
+            cd /path/to/your/project  # Укажите путь до вашего проекта на удаленном хосте
+            git pull origin main  # Обновление кода из репозитория
+
+            # Остановить и удалить текущие контейнеры
+            docker-compose down
+
+            # Пересобрать и запустить контейнеры
+            docker-compose up --build -d
+          EOF
