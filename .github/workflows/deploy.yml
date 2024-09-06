@@ -18,6 +18,9 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Add remote host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy to Remote Host
         env:
           HOST: ${{ secrets.REMOTE_HOST }}
@@ -33,3 +36,4 @@ jobs:
             # Пересобрать и запустить контейнеры
             docker-compose up --build -d
           EOF
+
