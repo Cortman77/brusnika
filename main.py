@@ -118,7 +118,7 @@ def handle_donate_button(message):
     donate_keyboard = types.InlineKeyboardMarkup()
     donate_button = types.InlineKeyboardButton(text="На жатецкий гусь", url=donate_url)
     donate_keyboard.add(donate_button)
-    bot.send_message(message.chat.id, "Закинь на пивко Брусникину", reply_markup=donate_keyboard)
+    bot.send_message(message.chat.id, "Закинь на пивко ВАЛЕРКЕ", reply_markup=donate_keyboard)
 
 # Логируем событие
     logger.info(f"User {message.chat.id} pressed 'Донат на пиво 🍺'")
