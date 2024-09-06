@@ -24,7 +24,7 @@ jobs:
           USER: ${{ secrets.REMOTE_USER }}
         run: |
           ssh $USER@$HOST << 'EOF'
-            cd /path/to/your/project  # Укажите путь до вашего проекта на удаленном хосте
+            cd /home/dba/bot/brusnika  # Укажите путь до вашего проекта на удаленном хосте
             git pull origin main  # Обновление кода из репозитория
 
             # Остановить и удалить текущие контейнеры
