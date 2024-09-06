@@ -35,7 +35,7 @@ audio_files = {
     "Уметь надо": {"path": os.path.join(base_dir, "audio/umetnado.mp3")},
     "Я вложил в этот чат свою жизнь...": {"path": os.path.join(base_dir, "audio/vetotchaszalozhil.mp3")},
     "Когда получил кредитку": {"path": os.path.join(base_dir, "audio/VYVMENYANEVERILI.mp3")},
-    "Хуево": {"path": os.path.join(base_dir, "audio/huevo.mp3")},
+    "Хуевость": {"path": os.path.join(base_dir, "audio/huevo.mp3")},
     "Лох твой отец": {"path": os.path.join(base_dir, "audio/lohtvoiotec.mp3")},
     "Пацаны охуевают": {"path": os.path.join(base_dir, "audio/pacabiohuevaut.mp3")},
     "Лох это ты": {"path": os.path.join(base_dir, "audio/Poshelnahuiloh.mp3")},
@@ -118,7 +118,7 @@ def handle_donate_button(message):
     donate_keyboard = types.InlineKeyboardMarkup()
     donate_button = types.InlineKeyboardButton(text="На жатецкий гусь", url=donate_url)
     donate_keyboard.add(donate_button)
-    bot.send_message(message.chat.id, "Закинь на пивко ВАЛЕРКЕ", reply_markup=donate_keyboard)
+    bot.send_message(message.chat.id, "Закинь на пивко Никите Брусникину", reply_markup=donate_keyboard)
 
 # Логируем событие
     logger.info(f"User {message.chat.id} pressed 'Донат на пиво 🍺'")
