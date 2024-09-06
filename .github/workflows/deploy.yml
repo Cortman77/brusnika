@@ -33,6 +33,8 @@ jobs:
             # Остановить и удалить текущие контейнеры
             docker-compose down
 
+            docker rm -f brusn || true
+
             # Пересобрать и запустить контейнеры
             docker-compose up --build -d
           EOF
