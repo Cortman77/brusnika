@@ -2,14 +2,12 @@ import telebot
 from telebot import types
 import os
 import random  # Импортируем random для случайного выбора
-from logger import logger  # Импортируем наш модуль логирования
-from stats_manager import StatsManager  # Импортируем модуль статистики
+
+
 
 # Создаем экземпляр бота с указанием токена
 bot = telebot.TeleBot("6713071175:AAFC3g1CTJGdDameBhacWEvsAh19DfbCoOk")
 
-# Инициализируем менеджер статистики
-stats_manager = StatsManager(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'phrase_stats.json'))
 
 # Получаем абсолютный путь к директории скрипта
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +34,7 @@ audio_files = {
     "Уметь надо": {"path": os.path.join(base_dir, "audio/umetnado.mp3")},
     "Я вложил в этот чат свою жизнь...": {"path": os.path.join(base_dir, "audio/vetotchaszalozhil.mp3")},
     "Когда получил кредитку": {"path": os.path.join(base_dir, "audio/VYVMENYANEVERILI.mp3")},
-    "Хуевость": {"path": os.path.join(base_dir, "audio/huevo.mp3")},
+    "Хуево": {"path": os.path.join(base_dir, "audio/huevo.mp3")},
     "Лох твой отец": {"path": os.path.join(base_dir, "audio/lohtvoiotec.mp3")},
     "Пацаны охуевают": {"path": os.path.join(base_dir, "audio/pacabiohuevaut.mp3")},
     "Лох это ты": {"path": os.path.join(base_dir, "audio/Poshelnahuiloh.mp3")},
@@ -85,6 +83,17 @@ audio_files = {
     "Тебя выебут (Remake Коля)": {"path": os.path.join(base_dir, "audio/tebya_vyebut_remake.mp3")},
     "Ухохо": {"path": os.path.join(base_dir, "audio/uhoho.mp3")},
     "Она его выкинет": {"path": os.path.join(base_dir, "audio/vykinet.mp3")},
+    "Иди на хуй": {"path": os.path.join(base_dir, "audio/idi_nahui.mp3")},
+    "Похоже на куколдыча": {"path": os.path.join(base_dir, "audio/kukoldych.mp3")},
+    "Что с монитором": {"path": os.path.join(base_dir, "audio/monitor.mp3")},
+    "Никого лучше меня": {"path": os.path.join(base_dir, "audio/hui_dozhdetes.mp3")},
+    "Установили что он пидр": {"path": os.path.join(base_dir, "audio/ustanovili_pidr.mp3")},
+    "Дальше секс и ВСЁ": {"path": os.path.join(base_dir, "audio/dalshe_sex.mp3")},
+    "Чисто в хате": {"path": os.path.join(base_dir, "audio/chisto.mp3")},
+    "Когда тебе весело...": {"path": os.path.join(base_dir, "audio/kogda_tebe_veselo.mp3")},
+
+
+
     
 
 
@@ -92,6 +101,7 @@ audio_files = {
 
 # Словарь с парами "название темы: список дочерних кнопок"
 topics = {
+    "СВЕЖАЧОК🔥": ["Иди на хуй", "Похоже на куколдыча", "Что с монитором", "Никого лучше меня", "Установили что он пидр", "Дальше секс и ВСЁ", "Чисто в хате", "Когда тебе весело..." ],
     "НОВИНКИ🆕:Угрозы☠️☠️": ["Зарежу", "Может не открыть глаза", "Сапогом в ебало", "Пизды выпишу и ВСЁ", "Плебей ебанный"  ],
     "НОВИНКИ🆕:Брусника поясняет🤌" : ["UNлимитное животное", "Компьютерный мастер", "Немытый крестьянин", "Федерация Барса", "Выдаёт базу", "Напасовая пиздоболия" ],
     "НОВИНКИ🆕:КРИКИ и песни😱&🎤" : ["Банана мама", "Для девочки", "Уроки французского", "Подвели", "Тополинный пух", "Песня: 'Ты сука'", "Временная яма", "Власу нельзя", "Я уебан", "Она его выкинет"  ],
@@ -105,140 +115,154 @@ topics = {
     
 }
 
+
+
 donate_audio_files = [
-    os.path.join(base_dir, "audio/DONATe.mp3"),
-    os.path.join(base_dir, "audio/DONATE2.mp3")
+    os.path.join(base_dir, "audio/dai_na_gusya.mp3"),
+    os.path.join(base_dir, "audio/DONATE2.mp3"),
+    os.path.join(base_dir, "audio/dai_GUSYA.mp3"),
 ]
 
+def log_user_action(user_id, action):
+    log_file_path = os.path.join(base_dir, 'user_actions.log')
+    with open(log_file_path, 'a', encoding='utf-8') as log_file:  # Specify encoding here
+        log_file.write(f"User ID: {user_id}, Action: {action}\n")
 
+def notify_users_once(user_ids, message):
+    # Путь к файлу для хранения уведомлений
+    log_file_path = os.path.join(base_dir, 'update_notified.txt')
 
-# Функция для создания клавиатуры с фразами
-def create_phrases_keyboard(topic):
-    keyboard = types.ReplyKeyboardMarkup(row_width=2)
+    # Проверяем, отправляли ли мы уведомление
+    if os.path.exists(log_file_path):
+        print("Уведомление уже было отправлено.")
+        return
+
+    success_ids = []
+    failed_ids = []
+
+    for user_id in user_ids:
+        try:
+            bot.send_message(user_id, message)
+            print(f"Сообщение успешно отправлено пользователю {user_id}.")
+            success_ids.append(user_id)  # Добавляем успешный ID в список
+        except Exception as e:
+            print(f"Не удалось отправить сообщение пользователю {user_id}: {e}")
+            failed_ids.append(user_id)  # Добавляем неуспешный ID в список
+
+    # Записываем в файл, чтобы больше не отправлять уведомление
+    with open(log_file_path, 'w', encoding='utf-8') as f:
+        f.write('Уведомление о обновлении отправлено.\n')
+        f.write("Успешные ID:\n")
+        for user_id in success_ids:
+            f.write(f"{user_id}\n")
+        f.write("Неудачные ID:\n")
+        for user_id in failed_ids:
+            f.write(f"{user_id}\n")
+
+def create_inline_phrases_keyboard(topic):
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    buttons = []
+    
+    # Создаем кнопки для каждой фразы
     for phrase in topics[topic]:
-        keyboard.add(phrase)
-    keyboard.add("Назад")
+        buttons.append(types.InlineKeyboardButton(text=phrase, callback_data=f"play_{phrase}"))
+    
+    if len(buttons) % 2 != 0:
+        buttons.append(types.InlineKeyboardButton(text=" ", callback_data="none"))
+
+    keyboard.add(*buttons)
+    keyboard.add(types.InlineKeyboardButton(text="Назад", callback_data="back"))
+    
     return keyboard
 
-# Обработчик команды /start
 @bot.message_handler(commands=['start'])
 def start(message):
-    keyboard = types.ReplyKeyboardMarkup(row_width=2)
-    buttons = [types.KeyboardButton(text=topic) for topic in topics]
-    keyboard.add(*buttons)
-    
-    # Добавляем кнопку "🎲 Случайный аудио"
-    random_button = types.KeyboardButton(text="🎲 Случайная фразочка")
-    donate_button = types.KeyboardButton(text="Донат на ПИВО 🍺")
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    for topic in topics.keys():
+        keyboard.add(types.InlineKeyboardButton(text=topic, callback_data=f"topic_{topic}"))
+
+    random_button = types.InlineKeyboardButton(text="🎲 Случайная фразочка", callback_data="random_phrase")
+    donate_button = types.InlineKeyboardButton(text="Донат на ПИВО 🍺", callback_data="donate")
     keyboard.add(random_button, donate_button)
     
-    bot.send_message(message.chat.id, 'Выбери раздел или накинь на пиво😉👌. Осторожно: раздел Ярость может быть громким😁:', reply_markup=keyboard)
+    bot.send_message(message.chat.id, 'Выбери раздел и накинь на пиво😉👌:', reply_markup=keyboard)
 
-# Логируем событие
-    logger.info(f"/start command received from user {message.chat.id}")
+user_ids = [529675743, 402417063, 126798048, 1118235356, 582667115, 538677038, 835829519, 1854291293, 340501530, 184765660, 263879978, 107739615, 1165457840, 1198267690, 1998907657, 5193149161, 923695852, 107739615, 837372912, 854854532, 1854291293, 215781246 ]  # Сюда добавьте ID пользователей, которым нужно отправить уведомление
+message = "Бот обновился! Ver. 1.03.\n 1) Изменен дизайн бота\n 2) С изменением кнопок частично решена проблема с бесконечным перелистыванием полученных фраз\n 3)Добавлены новые фразы\n 4) Добавлена функциональность уведомления о новых версиях бота.\n Пожалуйста, нажмите /start, чтобы получить новые функции."
+notify_users_once(user_ids, message)
 
-# Обработчик нажатия на родительскую кнопку (тему)
-@bot.message_handler(func=lambda message: message.text in topics.keys())
-def handle_parent_button(message):
-    bot.send_message(message.chat.id, 'Выбери фразу:', reply_markup=create_phrases_keyboard(message.text))
+@bot.callback_query_handler(func=lambda call: call.data.startswith("topic_"))
+def handle_topic_selection(call):
+    topic = call.data.split("_")[1]
+    log_user_action(call.from_user.id, f"Selected topic: {topic}")  # Логируем выбор темы
+    bot.send_message(call.message.chat.id, "Выбери фразу:", reply_markup=create_inline_phrases_keyboard(topic))
 
-# Логируем событие
-    logger.info(f"User {message.chat.id} selected topic: {message.text}")
-
-# Обработчик нажатия на кнопку с фразой
-@bot.message_handler(func=lambda message: message.text in audio_files.keys())
-def handle_message(message):
-    audio_path = audio_files[message.text]["path"]
+@bot.callback_query_handler(func=lambda call: call.data.startswith("play_"))
+def handle_phrase_selection(call):
+    phrase = call.data.split("_")[1]
+    audio_path = audio_files[phrase]["path"]
+    log_user_action(call.from_user.id, f"Played phrase: {phrase}")  # Логируем нажатие кнопки фразы
+    
     if os.path.exists(audio_path):
         with open(audio_path, 'rb') as audio_file:
-            bot.send_audio(message.chat.id, audio=audio_file)
-        
-        # Обновляем статистику для пользователя
-        user_id = str(message.chat.id)  # Используем chat.id как уникальный идентификатор пользователя
-        phrase = message.text
-        logger.info(f"Updating stats for user {user_id} with phrase '{phrase}'")  # Логируем обновление
-        stats_manager.update_stat(user_id, phrase)  # Обновляем статистику
-        
+            bot.send_audio(call.message.chat.id, audio=audio_file)
     else:
-        bot.send_message(message.chat.id, f"Файл не найден: {audio_path}")
+        bot.send_message(call.message.chat.id, f"Файл не найден: {audio_path}")
 
-# Обработчик команды /stats
-@bot.message_handler(commands=['stats'])
-def send_stats(message):
-    stats = stats_manager.load_stats()  # Загружаем статистику
-    if not stats:
-        bot.send_message(message.chat.id, "Статистика пуста.")
-        return
+@bot.callback_query_handler(func=lambda call: call.data == "random_phrase")
+def handle_random_phrase(call):
+    random_phrase = random.choice(list(audio_files.keys()))
+    audio_path = audio_files[random_phrase]["path"]
+    log_user_action(call.from_user.id, f"Played random phrase: {random_phrase}")  # Логируем случайную фразу
     
-    # Формируем сообщение со статистикой
-    stats_message = "Статистика:\n"
-    for user_id, phrases in stats.items():
-        stats_message += f"\nПользователь {user_id}:\n"
-        for phrase, count in phrases.items():
-            stats_message += f"  - {phrase}: {count} раз(а)\n"
-    
-    bot.send_message(message.chat.id, stats_message)
+    if os.path.exists(audio_path):
+        with open(audio_path, 'rb') as audio_file:
+            bot.send_audio(call.message.chat.id, audio=audio_file)
+        bot.send_message(call.message.chat.id, f"🎲 Случайная фразочка: {random_phrase}")
+    else:
+        bot.send_message(call.message.chat.id, f"Файл не найден: {audio_path}")
 
-    # Логируем событие
-    logger.info(f"User {message.chat.id} requested stats.")
-
-
-# Обработчик нажатия на кнопку "Назад"
-@bot.message_handler(func=lambda message: message.text == "Назад")
-def handle_back_button(message):
-    start(message)  # Возвращаемся к выбору тем
-
-# Логируем событие
-    logger.info(f"User {message.chat.id} pressed 'Назад'")
-
-@bot.message_handler(func=lambda message: message.text == "Донат на ПИВО 🍺")
-def handle_donate_button(message):
-    # Отправляем сообщение с кнопкой для доната
-    donate_url = "https://yoomoney.ru/to/410011621862970"
+@bot.callback_query_handler(func=lambda call: call.data == "donate")
+def handle_donate_button(call):
+    log_user_action(call.from_user.id, "Clicked donate button")  # Логируем донат
     donate_keyboard = types.InlineKeyboardMarkup()
-    donate_button = types.InlineKeyboardButton(text="НА ЖАТЕЦКИЙ ГУСЬ!!!!", url=donate_url)
+
+    donate_button = types.InlineKeyboardButton(text="🔥🔥🔥 НА ЖАТЕЦКИЙ ГУСЬ!!! 🔥🔥🔥", callback_data='donate_to_gus')
     donate_keyboard.add(donate_button)
 
-    bot.send_message(message.chat.id, "ЗАКИНЬ НА ПИВАСИК БРУСНИКЕ", reply_markup=donate_keyboard)
+    bot.send_message(call.message.chat.id, "ЗАКИНЬ НА ПИВАСИК БРУСНИКЕ", reply_markup=donate_keyboard)
 
-
-
-    # Отправка изображения
-    image_path = os.path.join(base_dir, "images/beer.jpg")  # Укажите правильный путь к изображению
+    image_path = os.path.join(base_dir, "images/beer.jpg")
     if os.path.exists(image_path):
         with open(image_path, 'rb') as image_file:
-            bot.send_photo(message.chat.id, photo=image_file)
+            bot.send_photo(call.message.chat.id, photo=image_file)
     else:
-        bot.send_message(message.chat.id, f"Картинка не найдена: {image_path}")
+        bot.send_message(call.message.chat.id, f"Картинка не найдена: {image_path}")
 
-    # Случайный выбор аудиофайла и его отправка
-    random_audio = random.choice(donate_audio_files)
-    
-    # Проверяем, существует ли файл, и отправляем его
-    if os.path.exists(random_audio):
-        with open(random_audio, 'rb') as audio_file:
-            bot.send_audio(message.chat.id, audio=audio_file)
+    if donate_audio_files:
+        random_audio = random.choice(donate_audio_files)
+        if os.path.exists(random_audio):
+            with open(random_audio, 'rb') as audio_file:
+                bot.send_audio(call.message.chat.id, audio=audio_file)
+        else:
+            bot.send_message(call.message.chat.id, f"Файл не найден: {random_audio}")
     else:
-        bot.send_message(message.chat.id, f"Файл не найден: {random_audio}")
-    
-    # Логируем событие
-    logger.info(f"User {message.chat.id} pressed 'Донат на пиво 🍺' and received audio: {random_audio}")
+        bot.send_message(call.message.chat.id, "Нет доступных аудиофайлов.")
 
+# Новый обработчик для кнопки "На Жатецкий Гусь"
+@bot.callback_query_handler(func=lambda call: call.data == "donate_to_gus")
+def handle_donate_to_gus_button(call):
+    log_user_action(call.from_user.id, "Нажал кнопку 'На Жатецкий Гусь'")  # Логируем действие пользователя
 
-# Обработчик нажатия на кнопку "🎲 "
-@bot.message_handler(func=lambda message: message.text == "🎲 Случайная фразочка")
-def handle_random_audio(message):
-    random_phrase = random.choice(list(audio_files.keys()))  # Случайный ключ из словаря audio_files
-    audio_path = audio_files[random_phrase]["path"]
-    
-    if os.path.exists(audio_path):
-        with open(audio_path, 'rb') as audio_file:
-            bot.send_audio(message.chat.id, audio=audio_file)
-        bot.send_message(message.chat.id, f"🎲 Случайная фразочка: {random_phrase}")  # Сообщаем пользователю, какой аудиофайл был выбран
-    else:
-        bot.send_message(message.chat.id, f"Файл не найден: {audio_path}")
+    donate_url = "https://yoomoney.ru/to/410011621862970"
+    bot.send_message(call.message.chat.id, f"ССЫЛОЧКА чтобы перечислить Бруснике на вдохновление!(Хоть рублик, но лучше СОТОЧКА): {donate_url}")
+
+# Обработчик для кнопки "Назад"
+@bot.callback_query_handler(func=lambda call: call.data == "back")
+def handle_back_button(call):
+    log_user_action(call.from_user.id, "Clicked back button")  # Логируем нажатие кнопки "Назад"
+    start(call.message)
 
 # Запускаем бота
 bot.polling(none_stop=True)
-
 
